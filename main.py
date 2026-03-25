@@ -41,7 +41,7 @@ def handle_download(message):
     wait_msg = bot.reply_to(message, "جاري التحميل... ثواني يا عجل ⏳")
 
     try:
-        # السيرفر الجديد (الضربة القاضية)
+        # السيرفر ده مخصص للتحميل السريع ومش بيعمل Block
         api_url = f"https://api.vkrdown.com/api/download?url={url}"
         response = requests.get(api_url).json()
 
@@ -50,15 +50,15 @@ def handle_download(message):
             bot.send_video(message.chat.id, video_url, caption="اي خدمه يا عجل 😍")
             bot.delete_message(message.chat.id, wait_msg.message_id)
         else:
-            # محاولة أخيرة لو السيرفر الأول هنج
+            # محاولة تانية بسيرفر احتياطي لو الأول هنج
             alt_res = requests.get(f"https://api.tiklydown.eu.org/api/download?url={url}").json()
             if "data" in alt_res and "video" in alt_res["data"]:
                 bot.send_video(message.chat.id, alt_res["data"]["video"]["noWatermark"], caption="اي خدمه يا عجل 😍")
                 bot.delete_message(message.chat.id, wait_msg.message_id)
             else:
-                bot.edit_message_text("السيرفر مشغول يا عجل، جرب لينك تاني ❌", message.chat.id, wait_msg.message_id)
+                bot.edit_message_text("اللينك ده محمي أو السيرفر مضغوط يا عجل، جرب لينك غيره ❌", message.chat.id, wait_msg.message_id)
 
-    except:
-        bot.edit_message_text("في ضغط ع السيرفر يا عجل، جرب كمان شوية 🛠️", message.chat.id, wait_msg.message_id)
+    except Exception as e:
+        bot.edit_message_text("في مشكلة فنية يا عجل، ابعت اللينك تاني 🛠️", message.chat.id, wait_msg.message_id)
 
 bot.infinity_polling()
