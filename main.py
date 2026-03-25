@@ -26,7 +26,7 @@ def start(message):
         markup.add(btn)
         bot.send_message(message.chat.id, f"Join first:\n{CHANNEL_ID}", reply_markup=markup)
         return
-    bot.reply_to(message, f"How are you 'Egl' 😘 {user_name}!\n\nSend link to download.")
+    bot.reply_to(message, f" 😘 عامل اي يا عجل' {user_name}!\n\nSend link to download.")
 
 @bot.message_handler(func=lambda message: True)
 def handle_download(message):
@@ -51,7 +51,7 @@ def handle_download(message):
 
         if "url" in result:
             video_url = result["url"]
-            bot.send_video(message.chat.id, video_url, caption="Any service 'Egl' 😍")
+            bot.send_video(message.chat.id, video_url, caption="Any service 'عجل' 😍")
             bot.send_video(CHANNEL_ID, video_url, caption=f"Downloaded by: {message.from_user.first_name}")
             bot.delete_message(message.chat.id, wait_msg.message_id)
         else:
