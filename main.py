@@ -41,7 +41,7 @@ def handle_download(message):
     wait_msg = bot.reply_to(message, "جاري التحميل... ثواني يا عجل ⏳")
 
     try:
-        # السيرفر ده مخصص للتحميل السريع ومش بيعمل Block
+        # السيرفر ده (SaveFrom البديل) بيسحب تقريباً كل المواقع
         api_url = f"https://api.vkrdown.com/api/download?url={url}"
         response = requests.get(api_url).json()
 
@@ -50,15 +50,16 @@ def handle_download(message):
             bot.send_video(message.chat.id, video_url, caption="اي خدمه يا عجل 😍")
             bot.delete_message(message.chat.id, wait_msg.message_id)
         else:
-            # محاولة تانية بسيرفر احتياطي لو الأول هنج
-            alt_res = requests.get(f"https://api.tiklydown.eu.org/api/download?url={url}").json()
+            # محاولة أخيرة بسيرفر تيك توك مخصوص لو اللينك تيك توك
+            alt_url = f"https://api.tiklydown.eu.org/api/download?url={url}"
+            alt_res = requests.get(alt_url).json()
             if "data" in alt_res and "video" in alt_res["data"]:
                 bot.send_video(message.chat.id, alt_res["data"]["video"]["noWatermark"], caption="اي خدمه يا عجل 😍")
                 bot.delete_message(message.chat.id, wait_msg.message_id)
             else:
-                bot.edit_message_text("اللينك ده محمي أو السيرفر مضغوط يا عجل، جرب لينك غيره ❌", message.chat.id, wait_msg.message_id)
+                bot.edit_message_text("اللينك ده تقيل ع السيرفر يا عجل، جرب لينك تاني ❌", message.chat.id, wait_msg.message_id)
 
-    except Exception as e:
-        bot.edit_message_text("في مشكلة فنية يا عجل، ابعت اللينك تاني 🛠️", message.chat.id, wait_msg.message_id)
+    except Exception:
+        bot.edit_message_text("حصل قفلة في السيرفر يا عجل، جرب كمان دقيقة 🛠️", message.chat.id, wait_msg.message_id)
 
 bot.infinity_polling()
