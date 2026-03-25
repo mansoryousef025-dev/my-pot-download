@@ -40,26 +40,45 @@ def handle_download(message):
 
     wait_msg = bot.reply_to(message, "جاري التحميل... ثواني يا عجل ⏳")
 
+    # الخطة (أ): سيرفر VKR (الأسرع حالياً)
     try:
-        # السيرفر ده (SaveFrom البديل) بيسحب تقريباً كل المواقع
-        api_url = f"https://api.vkrdown.com/api/download?url={url}"
-        response = requests.get(api_url).json()
-
-        if "data" in response and "url" in response["data"]:
-            video_url = response["data"]["url"]
-            bot.send_video(message.chat.id, video_url, caption="اي خدمه يا عجل 😍")
+        res = requests.get(f"https://api.vkrdown.com/api/download?url={url}").json()
+        if "data" in res and "url" in res["data"]:
+            bot.send_video(message.chat.id, res["data"]["url"], caption="اي خدمه يا عجل 😍")
             bot.delete_message(message.chat.id, wait_msg.message_id)
-        else:
-            # محاولة أخيرة بسيرفر تيك توك مخصوص لو اللينك تيك توك
-            alt_url = f"https://api.tiklydown.eu.org/api/download?url={url}"
-            alt_res = requests.get(alt_url).json()
-            if "data" in alt_res and "video" in alt_res["data"]:
-                bot.send_video(message.chat.id, alt_res["data"]["video"]["noWatermark"], caption="اي خدمه يا عجل 😍")
-                bot.delete_message(message.chat.id, wait_msg.message_id)
-            else:
-                bot.edit_message_text("اللينك ده تقيل ع السيرفر يا عجل، جرب لينك تاني ❌", message.chat.id, wait_msg.message_id)
+            return
+    except: pass
 
-    except Exception:
-        bot.edit_message_text("حصل قفلة في السيرفر يا عجل، جرب كمان دقيقة 🛠️", message.chat.id, wait_msg.message_id)
+    # الخطة (ب): سيرفر TiklyDown (للتيك توك مخصوص)
+    try:
+        res = requests.get(f"https://api.tiklydown.eu.org/api/download?url={url}").json()
+        if "data" in res and "video" in res["data"]:
+            bot.send_video(message.chat.id, res["data"]["video"]["noWatermark"], caption="اي خدمه يا عجل 😍")
+            bot.delete_message(message.chat.id, wait_msg.message_id)
+            return
+    except: pass
+
+    # الخطة (ج): سيرفر Cobalt (لليوتيوب والإنستا)
+    try:
+        res = requests.post("https://api.cobalt.tools/api/json", 
+                            json={"url": url, "vCodec": "h264"}, 
+                            headers={"Accept": "application/json"}).json()
+        if "url" in res:
+            bot.send_video(message.chat.id, res["url"], caption="اي خدمه يا عجل 😍")
+            bot.delete_message(message.chat.id, wait_msg.message_id)
+            return
+    except: pass
+
+    # الخطة (د): سيرفر Loov (احتياطي الأزمات)
+    try:
+        res = requests.get(f"https://api.loov.io/api/json?url={url}").json()
+        if "url" in res:
+            bot.send_video(message.chat.id, res["url"], caption="اي خدمه يا عجل 😍")
+            bot.delete_message(message.chat.id, wait_msg.message_id)
+            return
+    except: pass
+
+    # لو كل المحاولات فشلت
+    bot.edit_message_text("السيرفرات كلها مهنجة يا عجل، جرب لينك تاني أو فيديو أقصر ❌", message.chat.id, wait_msg.message_id)
 
 bot.infinity_polling()
