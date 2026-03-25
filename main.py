@@ -40,45 +40,35 @@ def handle_download(message):
 
     wait_msg = bot.reply_to(message, "جاري التحميل... ثواني يا عجل ⏳")
 
-    # الخطة (أ): سيرفر VKR (الأسرع حالياً)
+    # المحاولة الوحيدة المضمونة (سيرفر Cobalt الأصلي)
     try:
-        res = requests.get(f"https://api.vkrdown.com/api/download?url={url}").json()
-        if "data" in res and "url" in res["data"]:
-            bot.send_video(message.chat.id, res["data"]["url"], caption="اي خدمه يا عجل 😍")
-            bot.delete_message(message.chat.id, wait_msg.message_id)
-            return
-    except: pass
+        payload = {
+            "url": url,
+            "vCodec": "h264", # عشان يشتغل على كل الموبايلات
+            "videoQuality": "720",
+            "isNoWatermark": True
+        }
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        
+        # السيرفر ده هو اللي شغال نار دلوقتي
+        res = requests.post("https://api.cobalt.tools/api/json", json=payload, headers=headers)
+        data = res.json()
 
-    # الخطة (ب): سيرفر TiklyDown (للتيك توك مخصوص)
-    try:
-        res = requests.get(f"https://api.tiklydown.eu.org/api/download?url={url}").json()
-        if "data" in res and "video" in res["data"]:
-            bot.send_video(message.chat.id, res["data"]["video"]["noWatermark"], caption="اي خدمه يا عجل 😍")
+        if "url" in data:
+            bot.send_video(message.chat.id, data["url"], caption="اي خدمه يا عجل 😍")
             bot.delete_message(message.chat.id, wait_msg.message_id)
-            return
-    except: pass
-
-    # الخطة (ج): سيرفر Cobalt (لليوتيوب والإنستا)
-    try:
-        res = requests.post("https://api.cobalt.tools/api/json", 
-                            json={"url": url, "vCodec": "h264"}, 
-                            headers={"Accept": "application/json"}).json()
-        if "url" in res:
-            bot.send_video(message.chat.id, res["url"], caption="اي خدمه يا عجل 😍")
+        elif "picker" in data:
+            # لو اللينك صور (زي تيك توك صور)
+            for item in data["picker"]:
+                bot.send_photo(message.chat.id, item["url"])
             bot.delete_message(message.chat.id, wait_msg.message_id)
-            return
-    except: pass
+        else:
+            bot.edit_message_text("السيرفر بيقولك اللينك ده تقيل عليه يا عجل، جرب فيديو تاني ❌", message.chat.id, wait_msg.message_id)
 
-    # الخطة (د): سيرفر Loov (احتياطي الأزمات)
-    try:
-        res = requests.get(f"https://api.loov.io/api/json?url={url}").json()
-        if "url" in res:
-            bot.send_video(message.chat.id, res["url"], caption="اي خدمه يا عجل 😍")
-            bot.delete_message(message.chat.id, wait_msg.message_id)
-            return
-    except: pass
-
-    # لو كل المحاولات فشلت
-    bot.edit_message_text("السيرفرات كلها مهنجة يا عجل، جرب لينك تاني أو فيديو أقصر ❌", message.chat.id, wait_msg.message_id)
+    except Exception as e:
+        bot.edit_message_text("في ضغط كبير يا عجل، جرب كمان شوية 🛠️", message.chat.id, wait_msg.message_id)
 
 bot.infinity_polling()
