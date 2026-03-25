@@ -2,7 +2,7 @@ import telebot
 import requests
 
 # --- Configuration ---
-API_TOKEN = '8737553445:AAEgS4zcfQToFjrDspLiBsE7EecvpU6IacY'
+API_TOKEN = '8737553445:AAGwi84SeVsoy9W08bmtftI45eOWpsleHj4'
 CHANNEL_ID = '@usf_0011'
 CHANNEL_LINK = 'https://t.me/usf_0011'
 
