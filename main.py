@@ -41,28 +41,29 @@ def handle_download(message):
     wait_msg = bot.reply_to(message, "جاري التحميل... ثواني يا عجل ⏳")
 
     try:
-        # Source 1: vkrdown
-        api_url = f"https://api.vkrdown.com/api/download?url={url}"
-        response = requests.get(api_url)
+        # Try Server 1: Cobalt API
+        api_url = "https://api.cobalt.tools/api/json"
+        headers = {"Content-Type": "application/json", "Accept": "application/json"}
+        data = {"url": url, "vCodec": "h264"}
+        
+        response = requests.post(api_url, json=data, headers=headers)
         result = response.json()
 
-        if "data" in result and "url" in result["data"]:
-            video_url = result["data"]["url"]
-            bot.send_video(message.chat.id, video_url, caption="اي خدمه يا عجل 😍")
-            bot.send_video(CHANNEL_ID, video_url, caption=f"By: {message.from_user.first_name}")
+        if "url" in result:
+            bot.send_video(message.chat.id, result["url"], caption="اي خدمه يا عجل 😍")
             bot.delete_message(message.chat.id, wait_msg.message_id)
-        else:
-            # Source 2: tiklydown (Fallback)
-            alt_url = f"https://api.tiklydown.eu.org/api/download?url={url}"
-            alt_res = requests.get(alt_url).json()
-            
-            if "data" in alt_res and "video" in alt_res["data"]:
-                bot.send_video(message.chat.id, alt_res["data"]["video"]["noWatermark"], caption="اي خدمه يا عجل 😍")
-                bot.delete_message(message.chat.id, wait_msg.message_id)
-            else:
-                bot.edit_message_text("السيرفر مشغول يا عجل، جرب لينك تاني ❌", message.chat.id, wait_msg.message_id)
+            return
 
-    except Exception as e:
+        # Try Server 2: TiklyDown (Fallback)
+        alt_res = requests.get(f"https://api.tiklydown.eu.org/api/download?url={url}").json()
+        if "data" in alt_res and "video" in alt_res["data"]:
+            bot.send_video(message.chat.id, alt_res["data"]["video"]["noWatermark"], caption="اي خدمه يا عجل 😍")
+            bot.delete_message(message.chat.id, wait_msg.message_id)
+            return
+            
+        bot.edit_message_text("السيرفر مشغول يا عجل، جرب لينك تاني ❌", message.chat.id, wait_msg.message_id)
+
+    except:
         bot.edit_message_text("حصل خطأ فني يا عجل، جرب كمان شوية 🛠️", message.chat.id, wait_msg.message_id)
 
 bot.infinity_polling()
